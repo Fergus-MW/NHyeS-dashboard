@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { DateNavigator } from "@/components/date-navigator";
 import { CapacityVisualization } from "@/components/capacity-visualization";
+import { NetworkVisualization } from "@/components/network-visualization";
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -55,9 +56,9 @@ export default function Dashboard() {
         {/* Clean Divider */}
         <div className="border-t border-nhs-mid-grey flex-shrink-0"></div>
 
-        {/* Bottom Half - Blank Section */}
+        {/* Bottom Half - Network Visualization */}
         <div className="h-1/2 bg-white min-h-0">
-          {/* Empty section for future content */}
+          <NetworkVisualization className="h-full" />
         </div>
       </div>
     </div>

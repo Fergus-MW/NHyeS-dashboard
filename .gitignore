@@ -108,6 +108,22 @@ Thumbs.db
 # Testing
 /coverage
 
+# Python
+venv/
+env/
+ENV/
+.venv/
+.env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+*.csv
+
 # Misc
 *.tgz
 *.tar.gz
