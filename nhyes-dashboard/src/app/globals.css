@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* NHS Brand Colors */
+    --nhs-blue: 213 100% 36%;
+    --nhs-dark-blue: 226 100% 27%;
+    --nhs-white: 0 0% 100%;
+    --nhs-black: 210 21% 16%;
+    --nhs-light-grey: 182 20% 95%;
+    --nhs-mid-grey: 158 11% 70%;
+    
+    /* System Colors */  
+    --system-green: 152 100% 25%;
+    --system-red: 9 86% 48%;
+    --system-amber: 43 100% 55%;
+    
+    /* Data Visualization Colors */
+    --data-projected-blue: 208 55% 48%;
+    --data-strategic-blue: 208 78% 70%;
+    --data-success-green: 101 35% 45%;
+    --data-neutral-grey: 0 0% 92%;
+    
+    /* Base variables */
+    --background: var(--nhs-white);
+    --foreground: var(--nhs-black);
+    --card: var(--nhs-white);
+    --card-foreground: var(--nhs-black);
+    --popover: var(--nhs-white);
+    --popover-foreground: var(--nhs-black);
+    --primary: var(--nhs-blue);
+    --primary-foreground: var(--nhs-white);
+    --secondary: var(--nhs-light-grey);
+    --secondary-foreground: var(--nhs-black);
+    --muted: var(--nhs-light-grey);
+    --muted-foreground: var(--nhs-black);
+    --accent: var(--system-amber);
+    --accent-foreground: var(--nhs-black);
+    --destructive: var(--system-red);
+    --destructive-foreground: var(--nhs-white);
+    --border: var(--nhs-mid-grey);
+    --input: var(--nhs-mid-grey);
+    --ring: var(--system-amber);
+    
+    --radius: 0.5rem;
+  }
+  
+  .dark {
+    --background: var(--nhs-black);
+    --foreground: var(--nhs-white);
+    --card: var(--nhs-dark-blue);
+    --card-foreground: var(--nhs-white);
+    --popover: var(--nhs-dark-blue);
+    --popover-foreground: var(--nhs-white);
+    --primary: var(--nhs-blue);
+    --primary-foreground: var(--nhs-white);
+    --secondary: var(--nhs-dark-blue);
+    --secondary-foreground: var(--nhs-white);
+    --muted: var(--nhs-dark-blue);
+    --muted-foreground: var(--nhs-mid-grey);
+    --accent: var(--system-amber);
+    --accent-foreground: var(--nhs-black);
+    --destructive: var(--system-red);
+    --destructive-foreground: var(--nhs-white);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Focus states for accessibility */
+  *:focus {
+    @apply outline-none ring-2 ring-accent ring-offset-2;
+  }
+  
+  /* Ensure minimum touch targets of 44x44px for accessibility */
+  button, [role="button"] {
+    @apply min-w-[44px] min-h-[44px];
+  }
+}
+
+@layer components {
+  /* NHS Typography Scale */
+  .text-page-title {
+    @apply text-[32px] leading-[1.5] font-bold;
+  }
+  
+  .text-section-title {
+    @apply text-[24px] leading-[1.5] font-bold;
+  }
+  
+  .text-card-title {
+    @apply text-[19px] leading-[1.5] font-bold;
+  }
+  
+  .text-body {
+    @apply text-[16px] leading-[1.5] font-normal;
+  }
+  
+  .text-body-small {
+    @apply text-[14px] leading-[1.5] font-normal;
+  }
+  
+  /* Hide scrollbar while maintaining scroll functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar { 
+    display: none;  /* Safari and Chrome */
+  }
+}
