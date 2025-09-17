@@ -23,14 +23,42 @@ module.exports = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        // NHS Brand Colors
+        // NHS Brand Colors - Complete Palette
         nhs: {
+          // Primary Blues
           blue: "#005EB8",
-          "dark-blue": "#003087", 
+          "dark-blue": "#003087",
+          "bright-blue": "#0072CE",
+          "light-blue": "#41B6E6",
+          "aqua-blue": "#00A9CE",
+
+          // Greys
           white: "#FFFFFF",
+          "pale-grey": "#F7F9FA",
+          "grey-5": "#F0F4F5",
+          "grey-4": "#D8DDE0",
+          "grey-3": "#C8CED3",
+          "grey-2": "#AEB7BD",
+          "grey-1": "#768692",
           black: "#212B32",
+
+          // Secondary Colors
+          purple: "#7C2855",
+          pink: "#DA568E",
+          red: "#DA291C",
+          orange: "#FF7700",
+          "warm-yellow": "#FFB81C",
+          yellow: "#FFD700",
+          green: "#009639",
+          "dark-green": "#006747",
+
+          // Text
+          "text-colour": "#212B32",
+          "secondary-text-colour": "#768692",
+
+          // Legacy aliases
           "light-grey": "#F0F4F5",
-          "mid-grey": "#AEB7B3",
+          "mid-grey": "#C8CED3",
         },
         system: {
           green: "#007F3B",

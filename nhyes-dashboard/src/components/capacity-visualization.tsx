@@ -73,6 +73,7 @@ export function CapacityVisualization({
   const getPixelHeight = (value: number) => (value / data.totalCapacity) * maxHeight;
   
   const handleSliderChange = (values: number[]) => {
+    console.log('Slider changed to:', values[0]);
     onSafetyMarginChange(values[0]);
   };
 
@@ -93,46 +94,56 @@ export function CapacityVisualization({
   const isOverCapacity = data.actualOutcome.actualAttendance > data.totalCapacity;
 
   return (
-    <div className="p-4 h-full flex overflow-hidden min-h-0">
+    <div className="h-full flex overflow-hidden min-h-0">
       {/* Left Column - Text and Controls */}
       <div className="w-1/2 flex flex-col justify-center pr-6">
-        <div className="mb-6">
-          <h2 className="text-section-title text-nhs-black mb-2">
-            Capacity Analysis
-          </h2>
-          <p className="text-body text-nhs-black">
-            {selectedDate.toLocaleDateString('en-GB', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </p>
-        </div>
-
         {/* Safety Margin Slider */}
         <div className="max-w-md">
           <div className="flex items-center justify-between mb-3">
-            <label className="text-body font-medium text-nhs-black">
+            <label className="text-base font-medium text-nhs-black">
               Adjust Safety Margin
             </label>
-            <span className="text-body-small font-medium text-nhs-blue">
+            <span className="text-sm font-semibold text-nhs-blue">
               {safetyMargin.toFixed(1)}%
             </span>
           </div>
-          
-          <Slider
-            value={[safetyMargin]}
-            onValueChange={handleSliderChange}
-            min={0}
-            max={30}
-            step={0.5}
-            className="w-full"
-          />
-          
-          <div className="flex justify-between text-body-small text-nhs-mid-grey mt-1">
+
+          <div className="relative z-10">
+            <Slider
+              value={[safetyMargin]}
+              onValueChange={handleSliderChange}
+              min={0}
+              max={30}
+              step={0.5}
+              className="w-full"
+              aria-label="Safety Margin"
+            />
+          </div>
+
+          <div className="flex justify-between text-xs text-nhs-grey-2 mt-2">
             <span>0%</span>
+            <span>15%</span>
             <span>30%</span>
+          </div>
+
+          {/* Capacity Info */}
+          <div className="mt-6 p-4 bg-nhs-pale-grey rounded-md">
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-nhs-secondary-text-colour">Total Capacity:</span>
+                <span className="font-semibold text-nhs-text-colour">{data.totalCapacity}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-nhs-secondary-text-colour">Projected:</span>
+                <span className="font-semibold text-nhs-text-colour">{data.bookingStrategy.projectedAttendance}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-nhs-secondary-text-colour">Actual:</span>
+                <span className={`font-semibold ${isOverCapacity ? 'text-nhs-red' : 'text-nhs-green'}`}>
+                  {data.actualOutcome.actualAttendance}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

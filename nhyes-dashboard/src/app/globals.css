@@ -5,13 +5,40 @@
 
 @layer base {
   :root {
-    /* NHS Brand Colors */
+    /* NHS Brand Colors - Core */
     --nhs-blue: 213 100% 36%;
     --nhs-dark-blue: 226 100% 27%;
+    --nhs-bright-blue: 199 100% 42%;
+    --nhs-light-blue: 201 92% 71%;
+    --nhs-aqua-blue: 188 91% 65%;
+
+    /* NHS Greys */
     --nhs-white: 0 0% 100%;
+    --nhs-pale-grey: 210 13% 98%;
+    --nhs-grey-5: 220 12% 96%;
+    --nhs-grey-4: 210 11% 89%;
+    --nhs-grey-3: 210 11% 83%;
+    --nhs-grey-2: 210 9% 65%;
+    --nhs-grey-1: 210 7% 43%;
     --nhs-black: 210 21% 16%;
-    --nhs-light-grey: 182 20% 95%;
-    --nhs-mid-grey: 158 11% 70%;
+
+    /* NHS Secondary Colors */
+    --nhs-purple: 285 42% 41%;
+    --nhs-pink: 332 76% 60%;
+    --nhs-red: 0 79% 46%;
+    --nhs-orange: 24 100% 51%;
+    --nhs-warm-yellow: 37 100% 50%;
+    --nhs-yellow: 53 100% 50%;
+    --nhs-green: 145 48% 44%;
+    --nhs-dark-green: 151 100% 21%;
+
+    /* Text Colors */
+    --nhs-text-colour: 210 21% 16%;
+    --nhs-secondary-text-colour: 210 7% 43%;
+
+    /* Deprecated mappings for backwards compatibility */
+    --nhs-light-grey: var(--nhs-grey-5);
+    --nhs-mid-grey: var(--nhs-grey-3);
     
     /* System Colors */  
     --system-green: 152 100% 25%;

@@ -78,62 +78,62 @@ export function DateNavigator({ selectedDate, onDateSelect }: DateNavigatorProps
   };
 
   return (
-    <div className="p-4 h-full flex flex-col overflow-hidden scrollbar-hide">
+    <div className="p-2 h-full flex flex-col overflow-hidden scrollbar-hide">
       {/* Month Navigation */}
-      <div className="flex items-center justify-between mb-3 flex-shrink-0">
+      <div className="flex items-center justify-between mb-2 flex-shrink-0">
         <Button
           variant="ghost"
           size="icon"
           onClick={goToPreviousMonth}
-          className="text-nhs-blue hover:bg-nhs-light-grey"
+          className="text-nhs-blue hover:bg-nhs-grey-5 h-6 w-6"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-3 w-3" />
         </Button>
-        
-        <h3 className="text-card-title text-nhs-black">
-          {MONTHS[month]} {year}
+
+        <h3 className="text-sm font-medium text-nhs-text-colour">
+          {MONTHS[month].substring(0, 3)} {year}
         </h3>
-        
+
         <Button
           variant="ghost"
           size="icon"
           onClick={goToNextMonth}
           disabled={new Date(year, month + 1) > new Date()}
-          className="text-nhs-blue hover:bg-nhs-light-grey disabled:opacity-50"
+          className="text-nhs-blue hover:bg-nhs-grey-5 disabled:opacity-50 h-6 w-6"
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-3 w-3" />
         </Button>
       </div>
-      
+
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-1 flex-1 min-h-0">
+      <div className="grid grid-cols-7 gap-0.5 flex-1 min-h-0">
         {/* Day Headers */}
         {DAYS.map((day) => (
-          <div key={day} className="py-1 text-center text-body-small font-medium text-nhs-mid-grey flex items-center justify-center">
-            {day}
+          <div key={day} className="py-0.5 text-center text-[10px] font-medium text-nhs-secondary-text-colour flex items-center justify-center">
+            {day.substring(0, 1)}
           </div>
         ))}
-        
+
         {/* Calendar Days */}
         {calendarDays.map((date, index) => (
-          <div key={index} className="flex items-center justify-center p-0.5">
+          <div key={index} className="flex items-center justify-center p-0">
             {date ? (
               <button
                 onClick={() => handleDateClick(date)}
                 disabled={!isDateAvailable(date)}
                 className={cn(
-                  "w-8 h-8 rounded-full text-sm font-medium transition-all duration-200",
+                  "w-7 h-7 rounded-md text-xs font-medium transition-all duration-200",
                   "flex items-center justify-center",
-                  "hover:bg-nhs-light-grey focus:outline-none focus:ring-2 focus:ring-system-amber focus:ring-offset-2",
+                  "hover:bg-nhs-grey-5 focus:outline-none focus:ring-1 focus:ring-nhs-blue focus:ring-offset-1",
                   {
                     // Default state
-                    "text-nhs-black hover:text-nhs-blue": isDateAvailable(date) && !isDateSelected(date),
-                    
+                    "text-nhs-text-colour hover:text-nhs-blue": isDateAvailable(date) && !isDateSelected(date),
+
                     // Selected state
-                    "bg-nhs-blue text-white hover:bg-nhs-blue": isDateSelected(date),
-                    
+                    "bg-nhs-blue text-white hover:bg-nhs-dark-blue": isDateSelected(date),
+
                     // Disabled/unavailable state
-                    "text-nhs-mid-grey cursor-not-allowed opacity-50": !isDateAvailable(date),
+                    "text-nhs-grey-3 cursor-not-allowed opacity-50": !isDateAvailable(date),
                   }
                 )}
                 aria-label={`Select ${date.toLocaleDateString()}`}

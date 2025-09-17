@@ -58,7 +58,7 @@ export function NetworkVisualization({ className = "" }: NetworkVisualizationPro
   const [data, setData] = useState<NetworkData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showLegend, setShowLegend] = useState(true);
+  const [showLegend, setShowLegend] = useState(false);
 
   // Load network data
   useEffect(() => {
@@ -276,78 +276,6 @@ export function NetworkVisualization({ className = "" }: NetworkVisualizationPro
     <div ref={containerRef} className={`relative w-full h-full ${className}`}>
       <svg ref={svgRef} className="w-full h-full" />
       
-      {/* Legend Overlay */}
-      {showLegend && (
-        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-4 max-w-xs">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="font-semibold text-sm text-nhs-black">Network Legend</h3>
-            <button
-              onClick={() => setShowLegend(false)}
-              className="text-nhs-mid-grey hover:text-nhs-black text-xs"
-            >
-              ✕
-            </button>
-          </div>
-          
-          <div className="space-y-3 text-xs">
-            {/* Risk Levels */}
-            <div>
-              <h4 className="font-medium mb-1 text-nhs-black">Risk Levels</h4>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-600"></div>
-                  <span>High Risk</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-orange-600"></div>
-                  <span>Medium Risk</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-green-600"></div>
-                  <span>Low Risk</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Node Types */}
-            <div>
-              <h4 className="font-medium mb-1 text-nhs-black">Node Types</h4>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-gray-400"></div>
-                  <span>Patients (small)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full bg-blue-500"></div>
-                  <span>Sites (large)</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Stats */}
-            {data && (
-              <div>
-                <h4 className="font-medium mb-1 text-nhs-black">Statistics</h4>
-                <div className="text-xs text-nhs-mid-grey space-y-0.5">
-                  <div>Nodes: {data.metadata.total_nodes.toLocaleString()}</div>
-                  <div>Links: {data.metadata.total_edges.toLocaleString()}</div>
-                  <div>Communities: {data.metadata.total_communities}</div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Show Legend Button (when hidden) */}
-      {!showLegend && (
-        <button
-          onClick={() => setShowLegend(true)}
-          className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 text-xs font-medium text-nhs-black hover:bg-white"
-        >
-          Show Legend
-        </button>
-      )}
     </div>
   );
 }
