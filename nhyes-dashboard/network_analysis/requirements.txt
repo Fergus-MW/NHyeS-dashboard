@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+pandas
+numpy
+networkx
+matplotlib
+seaborn 
+cdlib
+leidenalg
+python-igraph
+pydantic
+python-multipart
+jinja2

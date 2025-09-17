@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="grid grid-2">
+    <div class="card">
+        <h2>⚙️ Analysis Settings</h2>
+        <form id="settings-form" onsubmit="saveSettings(event)">
+            <div class="form-group">
+                <label for="sample_size">Sample Size</label>
+                <input type="number" id="sample_size" name="sample_size"
+                       value="{{ settings.sample_size }}"
+                       min="1000" max="100000" step="1000">
+                <small style="color: var(--text-secondary);">
+                    Number of appointment records to analyze. Larger samples take longer but are more comprehensive.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="min_community_size">Minimum Community Size</label>
+                <input type="number" id="min_community_size" name="min_community_size"
+                       value="{{ settings.min_community_size }}"
+                       min="5" max="100" step="1">
+                <small style="color: var(--text-secondary);">
+                    Communities smaller than this will be merged with larger ones.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="use_sample" name="use_sample"
+                           {% if settings.use_sample %}checked{% endif %}>
+                    Use Sampling
+                </label>
+                <small style="color: var(--text-secondary);">
+                    If unchecked, will use the full dataset (may take much longer).
+                </small>
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                <button type="submit" class="btn">Save Settings</button>
+                <button type="button" class="btn btn-secondary" onclick="resetDefaults()">Reset Defaults</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>📋 Recommendations</h2>
+        <div style="display: grid; gap: 1rem;">
+            <div style="border-left: 4px solid var(--risk-low); padding-left: 1rem;">
+                <h3>Small Dataset (< 10K records)</h3>
+                <p>Sample Size: 5,000-10,000<br>
+                Min Community Size: 5-8<br>
+                Processing Time: ~1-2 minutes</p>
+            </div>
+
+            <div style="border-left: 4px solid var(--risk-medium); padding-left: 1rem;">
+                <h3>Medium Dataset (10K-50K records)</h3>
+                <p>Sample Size: 15,000-25,000<br>
+                Min Community Size: 8-12<br>
+                Processing Time: ~2-5 minutes</p>
+            </div>
+
+            <div style="border-left: 4px solid var(--risk-high); padding-left: 1rem;">
+                <h3>Large Dataset (> 50K records)</h3>
+                <p>Sample Size: 30,000-50,000<br>
+                Min Community Size: 10-15<br>
+                Processing Time: ~5-10 minutes</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>🔬 Algorithm Details</h2>
+    <div class="grid grid-2">
+        <div>
+            <h3>Leiden Algorithm</h3>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                <li>High-quality community detection</li>
+                <li>Better than Louvain algorithm</li>
+                <li>Optimizes modularity locally and globally</li>
+                <li>Produces stable, meaningful communities</li>
+            </ul>
+        </div>
+        <div>
+            <h3>Risk Assessment</h3>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                <li>Bayesian smoothing for robust estimates</li>
+                <li>Percentile-based risk classification</li>
+                <li>High: Top 25% by risk score</li>
+                <li>Low: Bottom 25% by risk score</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+async function saveSettings(event) {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+
+    try {
+        const response = await fetch('/settings', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            showNotification('Settings saved successfully!', 'success');
+        } else {
+            showNotification('Failed to save settings: ' + result.message, 'error');
+        }
+    } catch (error) {
+        showNotification('Failed to save settings: ' + error.message, 'error');
+    }
+}
+
+function resetDefaults() {
+    document.getElementById('sample_size').value = 20000;
+    document.getElementById('min_community_size').value = 10;
+    document.getElementById('use_sample').checked = true;
+
+    showNotification('Settings reset to defaults', 'info');
+}
+
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    document.querySelectorAll('.notification').forEach(n => n.remove());
+
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 4px;
+        color: white;
+        z-index: 1000;
+        max-width: 400px;
+    `;
+
+    if (type === 'success') {
+        notification.style.background = 'var(--risk-low)';
+    } else if (type === 'error') {
+        notification.style.background = 'var(--risk-high)';
+    } else {
+        notification.style.background = 'var(--nhs-blue)';
+    }
+
+    notification.innerHTML = `
+        ${message}
+        <button onclick="this.parentElement.remove()"
+                style="background: none; border: none; color: white; float: right; cursor: pointer; font-size: 1.2rem; margin-left: 1rem;">&times;</button>
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Update sample size input when use_sample checkbox changes
+document.addEventListener('DOMContentLoaded', function() {
+    const useSample = document.getElementById('use_sample');
+    const sampleSize = document.getElementById('sample_size');
+
+    useSample.addEventListener('change', function() {
+        if (!this.checked) {
+            showNotification('Warning: Using full dataset may take significantly longer to process.', 'info');
+        }
+    });
+
+    // Add input validation
+    sampleSize.addEventListener('input', function() {
+        const value = parseInt(this.value);
+        if (value > 50000) {
+            showNotification('Large sample sizes (>50K) may take 10+ minutes to process.', 'info');
+        }
+    });
+});
+</script>
+{% endblock %}

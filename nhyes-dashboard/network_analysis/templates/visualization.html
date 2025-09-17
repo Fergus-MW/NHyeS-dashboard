@@ -1,0 +1,764 @@
+{% extends "base.html" %} {% block content %} {% if has_data %}
+<div
+    style="
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 1rem;
+        height: 80vh;
+    "
+>
+    <!-- Main Visualization Area -->
+    <div class="card" style="padding: 0; position: relative">
+        <div id="network-viz" style="width: 100%; height: 100%"></div>
+
+        <!-- Floating Controls -->
+        <div
+            style="
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                background: rgba(255, 255, 255, 0.9);
+                padding: 0.5rem;
+                border-radius: 4px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            "
+        >
+            <div
+                style="
+                    display: flex;
+                    gap: 0.5rem;
+                    align-items: center;
+                    flex-wrap: wrap;
+                "
+            >
+                <select
+                    id="risk-perspective"
+                    style="
+                        padding: 0.25rem;
+                        font-size: 0.9rem;
+                        font-weight: bold;
+                        border: 2px solid var(--nhs-blue);
+                    "
+                >
+                    <option value="community">Community Risk</option>
+                    <option value="individual">Individual Risk</option>
+                </select>
+
+                <select
+                    id="risk-filter"
+                    style="padding: 0.25rem; font-size: 0.9rem"
+                >
+                    <option value="all">All Risk Levels</option>
+                    <option value="High">High Risk</option>
+                    <option value="Medium">Medium Risk</option>
+                    <option value="Low">Low Risk</option>
+                </select>
+
+                <select
+                    id="node-type-filter"
+                    style="padding: 0.25rem; font-size: 0.9rem"
+                >
+                    <option value="all">All Nodes</option>
+                    <option value="patient">Patients Only</option>
+                    <option value="site">Sites Only</option>
+                </select>
+
+                <button
+                    class="btn"
+                    onclick="zoomToFit()"
+                    style="padding: 0.25rem 0.5rem; font-size: 0.9rem"
+                >
+                    Reset View
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar with Stats and Controls -->
+    <div style="display: grid; gap: 1rem; max-height: 80vh; overflow-y: auto">
+        <!-- Statistics -->
+        <div class="card">
+            <h3 style="color: var(--nhs-blue); margin-bottom: 1rem">
+                📊 Network Stats
+            </h3>
+            <div id="stats-container">
+                <div
+                    style="
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 0.5rem 0;
+                        border-bottom: 1px solid var(--border);
+                    "
+                >
+                    <span>Total Nodes:</span>
+                    <strong id="total-nodes">-</strong>
+                </div>
+                <div
+                    style="
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 0.5rem 0;
+                        border-bottom: 1px solid var(--border);
+                    "
+                >
+                    <span>Total Edges:</span>
+                    <strong id="total-edges">-</strong>
+                </div>
+                <div
+                    style="
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 0.5rem 0;
+                        border-bottom: 1px solid var(--border);
+                    "
+                >
+                    <span>Communities:</span>
+                    <strong id="total-communities">-</strong>
+                </div>
+                <div
+                    style="
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 0.5rem 0;
+                        border-bottom: 1px solid var(--border);
+                    "
+                >
+                    <span>High Risk:</span>
+                    <strong
+                        style="color: var(--risk-high)"
+                        id="high-risk-communities"
+                        >-</strong
+                    >
+                </div>
+                <div
+                    style="
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 0.5rem 0;
+                    "
+                >
+                    <span>Low Risk:</span>
+                    <strong
+                        style="color: var(--risk-low)"
+                        id="low-risk-communities"
+                        >-</strong
+                    >
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="card">
+            <h3
+                style="color: var(--nhs-blue); margin-bottom: 1rem"
+                id="legend-title"
+            >
+                🎨 Legend - Community Risk
+            </h3>
+            <div style="display: grid; gap: 0.5rem">
+                <div style="display: flex; align-items: center; gap: 0.5rem">
+                    <div
+                        style="
+                            width: 12px;
+                            height: 12px;
+                            border-radius: 50%;
+                            background: var(--risk-high);
+                        "
+                    ></div>
+                    <span>High Risk Patient</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem">
+                    <div
+                        style="
+                            width: 12px;
+                            height: 12px;
+                            border-radius: 50%;
+                            background: var(--risk-medium);
+                        "
+                    ></div>
+                    <span>Medium Risk Patient</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem">
+                    <div
+                        style="
+                            width: 12px;
+                            height: 12px;
+                            border-radius: 50%;
+                            background: var(--risk-low);
+                        "
+                    ></div>
+                    <span>Low Risk Patient</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem">
+                    <div
+                        style="
+                            width: 12px;
+                            height: 12px;
+                            background: var(--site-color);
+                        "
+                    ></div>
+                    <span>Healthcare Site</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Selected Node Info -->
+        <div class="card" id="node-info" style="display: none">
+            <h3 style="color: var(--nhs-blue); margin-bottom: 1rem">
+                🔍 Node Details
+            </h3>
+            <div id="node-details"></div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <h3 style="color: var(--nhs-blue); margin-bottom: 1rem">
+                🚀 Actions
+            </h3>
+            <div style="display: grid; gap: 0.5rem">
+                <button class="btn btn-secondary" onclick="showHighRisk()">
+                    Show High Risk Only
+                </button>
+                <button class="btn btn-secondary" onclick="showCommunities()">
+                    Highlight Communities
+                </button>
+                <button class="btn btn-secondary" onclick="resetFilters()">
+                    Reset All Filters
+                </button>
+                <a href="/" class="btn">Run New Analysis</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tooltip -->
+<div
+    id="tooltip"
+    style="
+        position: absolute;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        pointer-events: none;
+        opacity: 0;
+        z-index: 1000;
+        max-width: 200px;
+    "
+></div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+    let networkData = null;
+    let svg = null;
+    let simulation = null;
+    let filteredData = null;
+
+    async function loadNetworkData() {
+        try {
+            const response = await fetch("/graph-data");
+            const data = await response.json();
+
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            networkData = data;
+            updateStats(data.metadata, data.summary);
+            renderNetwork(data);
+        } catch (error) {
+            console.error("Failed to load network data:", error);
+            document.getElementById("network-viz").innerHTML =
+                '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary);">' +
+                "Failed to load network data: " +
+                error.message +
+                "</div>";
+        }
+    }
+
+    function updateStats(metadata, summary) {
+        document.getElementById("total-nodes").textContent =
+            metadata.total_nodes.toLocaleString();
+        document.getElementById("total-edges").textContent =
+            metadata.total_edges.toLocaleString();
+        document.getElementById("total-communities").textContent =
+            metadata.total_communities;
+        document.getElementById("high-risk-communities").textContent =
+            metadata.high_risk_communities;
+        document.getElementById("low-risk-communities").textContent =
+            metadata.low_risk_communities;
+    }
+
+    function renderNetwork(data) {
+        const container = document.getElementById("network-viz");
+        const rect = container.getBoundingClientRect();
+        const width = rect.width;
+        const height = rect.height;
+
+        // Clear existing visualization
+        d3.select("#network-viz").select("svg").remove();
+
+        // Create SVG
+        svg = d3
+            .select("#network-viz")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        // Add zoom behavior
+        const zoom = d3
+            .zoom()
+            .scaleExtent([0.1, 10])
+            .on("zoom", (event) => {
+                g.attr("transform", event.transform);
+            });
+
+        svg.call(zoom);
+
+        // Create main group for zooming
+        const g = svg.append("g");
+
+        // Create simulation with tighter clustering
+        simulation = d3
+            .forceSimulation()
+            .force(
+                "link",
+                d3
+                    .forceLink()
+                    .id((d) => d.id)
+                    .distance(30)
+                    .strength(0.5),
+            )
+            .force("charge", d3.forceManyBody().strength(-50))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force(
+                "collision",
+                d3.forceCollide().radius((d) => getNodeRadius(d) + 1),
+            )
+            .force("x", d3.forceX(width / 2).strength(0.05))
+            .force("y", d3.forceY(height / 2).strength(0.05));
+
+        // Initial render with all data
+        filteredData = data;
+        updateVisualization();
+    }
+
+    function updateVisualization() {
+        if (!svg || !filteredData) return;
+
+        const g = svg.select("g");
+
+        // Create links
+        const link = g
+            .selectAll(".link")
+            .data(filteredData.links, (d) => d.source.id + "-" + d.target.id);
+
+        link.exit().remove();
+
+        const linkEnter = link
+            .enter()
+            .append("line")
+            .attr("class", "link")
+            .attr("stroke", "#999")
+            .attr("stroke-opacity", 0.6);
+
+        const linkUpdate = linkEnter
+            .merge(link)
+            .attr("stroke-width", (d) => Math.max(1, Math.log(d.weight + 1)));
+
+        // Create nodes
+        const node = g.selectAll(".node").data(filteredData.nodes, (d) => d.id);
+
+        node.exit().remove();
+
+        const nodeEnter = node
+            .enter()
+            .append("circle")
+            .attr("class", "node")
+            .attr("stroke", "#333")
+            .attr("stroke-width", 1.5)
+            .call(
+                d3
+                    .drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended),
+            )
+            .on("mouseover", showTooltip)
+            .on("mouseout", hideTooltip)
+            .on("click", selectNode);
+
+        const nodeUpdate = nodeEnter
+            .merge(node)
+            .attr("r", getNodeRadius)
+            .attr("fill", getNodeColor);
+
+        // Update simulation
+        simulation.nodes(filteredData.nodes);
+        simulation.force("link").links(filteredData.links);
+        simulation.alpha(1).restart();
+
+        // Update positions on tick
+        simulation.on("tick", () => {
+            linkUpdate
+                .attr("x1", (d) => d.source.x)
+                .attr("y1", (d) => d.source.y)
+                .attr("x2", (d) => d.target.x)
+                .attr("y2", (d) => d.target.y);
+
+            nodeUpdate.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+        });
+
+        console.log(
+            `Rendered ${filteredData.nodes.length} nodes and ${filteredData.links.length} links`,
+        );
+    }
+
+    function getNodeRadius(d) {
+        const base = d.type === "patient" ? 4 : 8;
+        const scale = Math.min((d.appointments || 1) / 10, 3);
+        return base + scale;
+    }
+
+    function getNodeColor(d) {
+        if (d.type === "patient") {
+            const perspective =
+                document.getElementById("risk-perspective")?.value ||
+                "community";
+
+            if (perspective === "individual") {
+                // Use individual patient risk category
+                switch (d.risk_category) {
+                    case "High":
+                        return "#d32f2f";
+                    case "Medium":
+                        return "#ff9800";
+                    case "Low":
+                        return "#4caf50";
+                    default:
+                        return "#757575";
+                }
+            } else {
+                // Use community-level risk
+                switch (d.risk_level) {
+                    case "High":
+                        return "#d32f2f";
+                    case "Medium":
+                        return "#ff9800";
+                    case "Low":
+                        return "#4caf50";
+                    default:
+                        return "#757575";
+                }
+            }
+        } else {
+            return "#2196f3";
+        }
+    }
+
+    function dragstarted(event, d) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+    }
+
+    function dragged(event, d) {
+        d.fx = event.x;
+        d.fy = event.y;
+    }
+
+    function dragended(event, d) {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+    }
+
+    function showTooltip(event, d) {
+        const tooltip = document.getElementById("tooltip");
+        const perspective =
+            document.getElementById("risk-perspective")?.value || "community";
+
+        let content = "";
+        if (d.type === "patient") {
+            content = `
+            <strong>Patient ${d.id.replace("P_", "")}</strong><br>
+            <strong>Individual Risk:</strong> ${d.risk_category}<br>
+            <strong>Community Risk:</strong> ${d.risk_level}<br>
+            <strong>DNA Rate:</strong> ${(d.dna_rate * 100).toFixed(1)}%<br>
+            <strong>Age Group:</strong> ${d.age_group}<br>
+            <strong>Appointments:</strong> ${d.appointments}<br>
+            <strong>Community:</strong> ${d.community}
+        `;
+        } else {
+            content = `
+            <strong>Healthcare Site</strong><br>
+            <strong>ID:</strong> ${d.id.replace("S_", "")}<br>
+            <strong>Location:</strong> ${d.location}<br>
+            <strong>DNA Rate:</strong> ${(d.dna_rate * 100).toFixed(1)}%<br>
+            <strong>Patients:</strong> ${d.unique_patients}<br>
+            <strong>Community:</strong> ${d.community}
+        `;
+        }
+
+        tooltip.innerHTML = content;
+        tooltip.style.opacity = 1;
+        tooltip.style.left = event.pageX + 10 + "px";
+        tooltip.style.top = event.pageY - 10 + "px";
+    }
+
+    function hideTooltip() {
+        document.getElementById("tooltip").style.opacity = 0;
+    }
+
+    function selectNode(event, d) {
+        // Show node details in sidebar
+        const nodeInfo = document.getElementById("node-info");
+        const nodeDetails = document.getElementById("node-details");
+
+        let details = "";
+        if (d.type === "patient") {
+            details = `
+            <div><strong>Patient ID:</strong> ${d.id.replace("P_", "")}</div>
+            <div><strong>Risk Level:</strong> <span style="color: ${getNodeColor(d)}">${d.risk_level}</span></div>
+            <div><strong>DNA Rate:</strong> ${(d.dna_rate * 100).toFixed(1)}%</div>
+            <div><strong>Age:</strong> ${d.age || "Unknown"}</div>
+            <div><strong>Age Group:</strong> ${d.age_group}</div>
+            <div><strong>Total Appointments:</strong> ${d.appointments}</div>
+            <div><strong>DNA Count:</strong> ${d.dna_count}</div>
+            <div><strong>Sites Visited:</strong> ${d.unique_sites}</div>
+            <div><strong>Community:</strong> ${d.community}</div>
+            <div><strong>Postcode:</strong> ${d.postcode}</div>
+        `;
+        } else {
+            details = `
+            <div><strong>Site ID:</strong> ${d.id.replace("S_", "")}</div>
+            <div><strong>Location:</strong> ${d.location}</div>
+            <div><strong>DNA Rate:</strong> ${(d.dna_rate * 100).toFixed(1)}%</div>
+            <div><strong>Total Appointments:</strong> ${d.appointments}</div>
+            <div><strong>DNA Count:</strong> ${d.dna_count}</div>
+            <div><strong>Unique Patients:</strong> ${d.unique_patients}</div>
+            <div><strong>Community:</strong> ${d.community}</div>
+            <div><strong>Treatment Function:</strong> ${d.treatment_function}</div>
+        `;
+        }
+
+        nodeDetails.innerHTML = details;
+        nodeInfo.style.display = "block";
+
+        // Highlight connected nodes
+        highlightConnections(d);
+    }
+
+    function highlightConnections(selectedNode) {
+        const connectedNodeIds = new Set();
+
+        filteredData.links.forEach((link) => {
+            if (link.source.id === selectedNode.id) {
+                connectedNodeIds.add(link.target.id);
+            } else if (link.target.id === selectedNode.id) {
+                connectedNodeIds.add(link.source.id);
+            }
+        });
+
+        // Fade non-connected nodes
+        svg.selectAll(".node").style("opacity", (d) =>
+            d.id === selectedNode.id || connectedNodeIds.has(d.id) ? 1 : 0.3,
+        );
+
+        svg.selectAll(".link").style("opacity", (d) =>
+            d.source.id === selectedNode.id || d.target.id === selectedNode.id
+                ? 0.8
+                : 0.1,
+        );
+
+        // Clear highlight after 3 seconds
+        setTimeout(() => {
+            svg.selectAll(".node").style("opacity", 1);
+            svg.selectAll(".link").style("opacity", 0.6);
+        }, 3000);
+    }
+
+    function applyFilters() {
+        const riskFilter = document.getElementById("risk-filter").value;
+        const nodeTypeFilter =
+            document.getElementById("node-type-filter").value;
+        const perspective =
+            document.getElementById("risk-perspective")?.value || "community";
+
+        if (!networkData) return;
+
+        let filteredNodes = networkData.nodes.slice();
+
+        // Apply risk filter based on selected perspective
+        if (riskFilter !== "all") {
+            filteredNodes = filteredNodes.filter((node) => {
+                if (perspective === "individual") {
+                    return node.risk_category === riskFilter;
+                } else {
+                    return node.risk_level === riskFilter;
+                }
+            });
+        }
+
+        // Apply node type filter
+        if (nodeTypeFilter !== "all") {
+            filteredNodes = filteredNodes.filter(
+                (node) => node.type === nodeTypeFilter,
+            );
+        }
+
+        // Filter links to only include those between filtered nodes
+        const nodeIds = new Set(filteredNodes.map((node) => node.id));
+        const filteredLinks = networkData.links.filter(
+            (link) =>
+                nodeIds.has(link.source.id || link.source) &&
+                nodeIds.has(link.target.id || link.target),
+        );
+
+        filteredData = {
+            ...networkData,
+            nodes: filteredNodes,
+            links: filteredLinks,
+        };
+
+        updateVisualization();
+    }
+
+    function zoomToFit() {
+        if (!svg) return;
+
+        const bounds = svg.node().getBBox();
+        const fullWidth = svg.attr("width");
+        const fullHeight = svg.attr("height");
+        const width = bounds.width;
+        const height = bounds.height;
+        const midX = bounds.x + width / 2;
+        const midY = bounds.y + height / 2;
+
+        if (width == 0 || height == 0) return;
+
+        const scale = Math.min(fullWidth / width, fullHeight / height) * 0.8;
+        const translate = [
+            fullWidth / 2 - scale * midX,
+            fullHeight / 2 - scale * midY,
+        ];
+
+        svg.transition()
+            .duration(750)
+            .call(
+                d3.zoom().transform,
+                d3.zoomIdentity
+                    .translate(translate[0], translate[1])
+                    .scale(scale),
+            );
+    }
+
+    function showHighRisk() {
+        document.getElementById("risk-filter").value = "High";
+        applyFilters();
+    }
+
+    function showCommunities() {
+        // Color nodes by community
+        svg.selectAll(".node").attr(
+            "fill",
+            (d) => d3.schemeCategory10[d.community % 10],
+        );
+    }
+
+    function resetFilters() {
+        document.getElementById("risk-filter").value = "all";
+        document.getElementById("node-type-filter").value = "all";
+        applyFilters();
+
+        // Reset node colors
+        svg.selectAll(".node").attr("fill", getNodeColor);
+
+        // Hide node info
+        document.getElementById("node-info").style.display = "none";
+    }
+
+    function changePerspective() {
+        const perspective =
+            document.getElementById("risk-perspective")?.value || "community";
+
+        // Re-color all nodes based on new perspective
+        if (svg) {
+            svg.selectAll(".node").attr("fill", getNodeColor);
+        }
+
+        // Update legend title
+        const legendTitle = document.getElementById("legend-title");
+        if (legendTitle) {
+            if (perspective === "individual") {
+                legendTitle.innerHTML = "🎨 Legend - Individual Patient Risk";
+            } else {
+                legendTitle.innerHTML = "🎨 Legend - Community Risk";
+            }
+        }
+
+        // Also re-apply current filters with new perspective
+        applyFilters();
+    }
+
+    // Event listeners
+    document.addEventListener("DOMContentLoaded", function () {
+        loadNetworkData();
+
+        document
+            .getElementById("risk-filter")
+            .addEventListener("change", applyFilters);
+        document
+            .getElementById("node-type-filter")
+            .addEventListener("change", applyFilters);
+        document
+            .getElementById("risk-perspective")
+            .addEventListener("change", changePerspective);
+    });
+</script>
+
+{% else %}
+<div class="card" style="text-align: center; padding: 3rem">
+    <h2>📊 No Visualization Data Available</h2>
+    <p style="color: var(--text-secondary); margin: 1rem 0">
+        {% if status == "loading" %} Analysis is currently running. Please wait
+        for it to complete. {% elif status == "error" %} Analysis failed: {{
+        message }} {% else %} No analysis has been run yet. Go to the Home page
+        to start an analysis. {% endif %}
+    </p>
+
+    {% if status == "loading" %}
+    <div class="progress-bar" style="max-width: 400px; margin: 2rem auto">
+        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+    </div>
+    <p id="progress-message">{{ message }}</p>
+
+    <script>
+        async function checkProgress() {
+            try {
+                const response = await fetch("/status");
+                const data = await response.json();
+
+                document.getElementById("progress-fill").style.width =
+                    data.progress + "%";
+                document.getElementById("progress-message").textContent =
+                    data.message;
+
+                if (data.status === "completed") {
+                    location.reload(); // Reload to show visualization
+                } else if (data.status === "loading") {
+                    setTimeout(checkProgress, 2000);
+                }
+            } catch (error) {
+                console.error("Progress check failed:", error);
+            }
+        }
+
+        checkProgress();
+    </script>
+    {% else %}
+    <a href="/" class="btn">Start Analysis</a>
+    {% endif %}
+</div>
+{% endif %} {% endblock %}

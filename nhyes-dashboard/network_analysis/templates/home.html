@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="grid grid-2">
+    <div class="card">
+        <h2>🏥 NHS Network Analysis</h2>
+        <p>Analyze NHS patient-site networks using the Leiden algorithm for community detection. Identify high-risk communities and understand DNA patterns across the healthcare network.</p>
+
+        <div style="margin: 1.5rem 0;">
+            <div class="status-indicator status-not-started" id="status-indicator">
+                <div class="status-dot"></div>
+                <span>Loading status...</span>
+            </div>
+        </div>
+
+        <div id="progress-container" style="display: none;">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
+            </div>
+            <p id="progress-message">Ready to start analysis</p>
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+            <button class="btn" id="start-btn" onclick="startAnalysis()">Start Analysis</button>
+            <a href="/settings" class="btn btn-secondary" style="margin-left: 0.5rem;">Configure Settings</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📊 Quick Stats</h2>
+        <div style="display: grid; gap: 1rem;">
+            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                <span>Sample Size:</span>
+                <strong id="sample-size">20,000</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                <span>Algorithm:</span>
+                <strong>Leiden Community Detection</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                <span>Min Community Size:</span>
+                <strong id="min-community-size">10</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+                <span>Analysis Status:</span>
+                <strong id="analysis-status">Not Started</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>🎯 How It Works</h2>
+    <div class="grid grid-3">
+        <div style="text-align: center; padding: 1rem;">
+            <div style="font-size: 2rem; color: var(--nhs-blue); margin-bottom: 0.5rem;">1️⃣</div>
+            <h3>Load Data</h3>
+            <p>NHS appointment data is loaded and cleaned for analysis</p>
+        </div>
+        <div style="text-align: center; padding: 1rem;">
+            <div style="font-size: 2rem; color: var(--nhs-blue); margin-bottom: 0.5rem;">2️⃣</div>
+            <h3>Detect Communities</h3>
+            <p>Leiden algorithm identifies patient-site communities</p>
+        </div>
+        <div style="text-align: center; padding: 1rem;">
+            <div style="font-size: 2rem; color: var(--nhs-blue); margin-bottom: 0.5rem;">3️⃣</div>
+            <h3>Visualize Results</h3>
+            <p>Interactive D3.js network shows risk patterns</p>
+        </div>
+    </div>
+</div>
+
+<script>
+let statusInterval;
+
+async function checkStatus() {
+    try {
+        const response = await fetch('/status');
+        const data = await response.json();
+
+        updateStatusIndicator(data.status, data.message);
+
+        if (data.status === 'loading') {
+            updateProgress(data.progress, data.message);
+            document.getElementById('progress-container').style.display = 'block';
+            document.getElementById('start-btn').disabled = true;
+        } else if (data.status === 'completed') {
+            updateProgress(100, data.message);
+            setTimeout(() => {
+                document.getElementById('progress-container').style.display = 'none';
+            }, 2000);
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('start-btn').textContent = 'Re-run Analysis';
+
+            // Show success message
+            showNotification('Analysis completed! Go to Visualization to see results.', 'success');
+        } else if (data.status === 'error') {
+            document.getElementById('progress-container').style.display = 'none';
+            document.getElementById('start-btn').disabled = false;
+            showNotification('Analysis failed: ' + data.message, 'error');
+        } else {
+            document.getElementById('start-btn').disabled = false;
+        }
+    } catch (error) {
+        console.error('Status check failed:', error);
+    }
+}
+
+function updateStatusIndicator(status, message) {
+    const indicator = document.getElementById('status-indicator');
+    const span = indicator.querySelector('span');
+
+    indicator.className = 'status-indicator status-' + status.replace('_', '-');
+    span.textContent = message;
+
+    document.getElementById('analysis-status').textContent =
+        status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
+}
+
+function updateProgress(progress, message) {
+    document.getElementById('progress-fill').style.width = progress + '%';
+    document.getElementById('progress-message').textContent = message;
+}
+
+async function startAnalysis() {
+    try {
+        const response = await fetch('/start-analysis', { method: 'POST' });
+        const data = await response.json();
+
+        if (response.ok) {
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('start-btn').textContent = 'Running...';
+
+            // Start status polling
+            if (statusInterval) clearInterval(statusInterval);
+            statusInterval = setInterval(checkStatus, 2000);
+
+            showNotification('Analysis started successfully!', 'success');
+        } else {
+            showNotification('Failed to start analysis: ' + data.message, 'error');
+        }
+    } catch (error) {
+        showNotification('Failed to start analysis: ' + error.message, 'error');
+    }
+}
+
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    document.querySelectorAll('.notification').forEach(n => n.remove());
+
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 4px;
+        color: white;
+        z-index: 1000;
+        max-width: 400px;
+    `;
+
+    if (type === 'success') {
+        notification.style.background = 'var(--risk-low)';
+    } else if (type === 'error') {
+        notification.style.background = 'var(--risk-high)';
+    } else {
+        notification.style.background = 'var(--nhs-blue)';
+    }
+
+    notification.innerHTML = `
+        ${message}
+        <button onclick="this.parentElement.remove()"
+                style="background: none; border: none; color: white; float: right; cursor: pointer; font-size: 1.2rem; margin-left: 1rem;">&times;</button>
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Load settings and start status checking
+async function loadSettings() {
+    // You could fetch settings from /settings endpoint if needed
+    // For now just update display
+    document.getElementById('sample-size').textContent = '20,000';
+    document.getElementById('min-community-size').textContent = '10';
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadSettings();
+    checkStatus();
+
+    // Check status every 5 seconds when not actively running
+    setInterval(() => {
+        if (!statusInterval) {
+            checkStatus();
+        }
+    }, 5000);
+});
+</script>
+{% endblock %}

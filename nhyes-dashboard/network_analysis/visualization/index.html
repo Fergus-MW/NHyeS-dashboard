@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NHS Network Visualization Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">NHS Network Visualization Dashboard</h1>
+            <div class="status-indicator" id="status-indicator">
+                <span class="status-text">Not Initialized</span>
+                <div class="status-dot" id="status-dot"></div>
+            </div>
+        </header>
+
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <div class="control-group">
+                <button id="initialize-btn" class="btn btn-primary">Initialize Analysis</button>
+                <button id="refresh-btn" class="btn btn-secondary" disabled>Refresh Data</button>
+            </div>
+
+            <div class="control-group">
+                <label for="risk-filter">Risk Level:</label>
+                <select id="risk-filter">
+                    <option value="all">All</option>
+                    <option value="High">High Risk</option>
+                    <option value="Medium">Medium Risk</option>
+                    <option value="Low">Low Risk</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="node-type-filter">Node Type:</label>
+                <select id="node-type-filter">
+                    <option value="all">All</option>
+                    <option value="patient">Patients</option>
+                    <option value="site">Sites</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="community-filter">Community:</label>
+                <select id="community-filter">
+                    <option value="all">All Communities</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Network Visualization -->
+            <div class="visualization-container">
+                <div id="network-viz" class="network-visualization">
+                    <div class="loading-message" id="loading-message">
+                        <div class="spinner"></div>
+                        <p>Initializing network analysis...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar with Statistics and Insights -->
+            <div class="sidebar">
+                <!-- Summary Statistics -->
+                <div class="stats-panel">
+                    <h3>Network Summary</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Nodes:</span>
+                        <span class="stat-value" id="total-nodes">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Edges:</span>
+                        <span class="stat-value" id="total-edges">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Communities:</span>
+                        <span class="stat-value" id="total-communities">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">High Risk:</span>
+                        <span class="stat-value risk-high" id="high-risk-communities">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Low Risk:</span>
+                        <span class="stat-value risk-low" id="low-risk-communities">-</span>
+                    </div>
+                </div>
+
+                <!-- Risk Distribution Chart -->
+                <div class="chart-panel">
+                    <h3>Risk Distribution</h3>
+                    <div id="risk-chart"></div>
+                </div>
+
+                <!-- Community Insights -->
+                <div class="insights-panel">
+                    <h3>Key Insights</h3>
+                    <div id="insights-list">
+                        <p class="no-data">Initialize analysis to view insights</p>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="legend-panel">
+                    <h3>Legend</h3>
+                    <div class="legend-item">
+                        <div class="legend-symbol patient high-risk"></div>
+                        <span>High Risk Patient</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-symbol patient medium-risk"></div>
+                        <span>Medium Risk Patient</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-symbol patient low-risk"></div>
+                        <span>Low Risk Patient</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-symbol site"></div>
+                        <span>Healthcare Site</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tooltip -->
+        <div id="tooltip" class="tooltip"></div>
+
+        <!-- Progress Modal -->
+        <div id="progress-modal" class="modal hidden">
+            <div class="modal-content">
+                <h3>Analyzing NHS Network Data</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <p id="progress-text">Initializing...</p>
+                <div class="progress-steps">
+                    <div class="step" id="step-loading">Loading Data</div>
+                    <div class="step" id="step-sampling">Sampling Data</div>
+                    <div class="step" id="step-cleaning">Cleaning Data</div>
+                    <div class="step" id="step-graph">Creating Graph</div>
+                    <div class="step" id="step-communities">Detecting Communities</div>
+                    <div class="step" id="step-analysis">Analyzing Patterns</div>
+                    <div class="step" id="step-export">Exporting Results</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api-client.js"></script>
+    <script src="js/network-viz.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
